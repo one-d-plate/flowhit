@@ -1,0 +1,110 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build server
+        working-directory: flowhit-rs
+        run: cargo build --release --bin flowhit-server
+      - name: Build app
+        working-directory: flowhit-app
+        run: cargo build --release
+      - name: Assemble dist
+        run: |
+          rm -rf flowhit-app/dist && mkdir -p flowhit-app/dist
+          cp flowhit-app/target/release/flowhit-app.exe flowhit-app/dist/
+          cp flowhit-rs/target/release/flowhit-server.exe flowhit-app/dist/
+          cp -r flowhit-rs/web flowhit-app/dist/
+          cp -r flowhit-rs/workspace flowhit-app/dist/
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Compile installer
+        working-directory: flowhit-app
+        shell: pwsh
+        run: |
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' installer.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: flowhit-app/installer-out/*.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build server
+        working-directory: flowhit-rs
+        run: cargo build --release --bin flowhit-server
+      - name: Build app
+        working-directory: flowhit-app
+        run: cargo build --release
+      - name: Assemble .app
+        run: |
+          APP="FLOWHIT PIXEL.app"
+          rm -rf "$APP" FlowHit-Pixel-macOS-arm64.dmg
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp flowhit-app/target/release/flowhit-app "$APP/Contents/MacOS/"
+          cp flowhit-rs/target/release/flowhit-server "$APP/Contents/MacOS/"
+          cp -r flowhit-rs/web "$APP/Contents/Resources/"
+          cp -r flowhit-rs/workspace "$APP/Contents/Resources/SeedWorkspace"
+          cat > "$APP/Contents/Info.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key><string>flowhit-app</string>
+            <key>CFBundleIdentifier</key><string>one-d-plate.flowhit-pixel</string>
+            <key>CFBundleName</key><string>FLOWHIT PIXEL</string>
+            <key>CFBundleVersion</key><string>${GITHUB_REF_NAME#v}</string>
+            <key>CFBundleShortVersionString</key><string>${GITHUB_REF_NAME#v}</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleIconFile</key><string>AppIcon</string>
+            <key>LSMinimumSystemVersion</key><string>11.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          EOF
+          mkdir -p AppIcon.iconset
+          for s in 16 32 128 256 512; do
+            sips -z $s $s flowhit-app/icon.png --out AppIcon.iconset/icon_${s}x${s}.png >/dev/null
+            sips -z $((s*2)) $((s*2)) flowhit-app/icon.png --out AppIcon.iconset/icon_${s}x${s}@2x.png >/dev/null
+          done
+          iconutil -c icns AppIcon.iconset -o "$APP/Contents/Resources/AppIcon.icns"
+          codesign --deep --force --sign - "$APP"
+      - name: Make DMG
+        run: |
+          hdiutil create -volname "FLOWHIT PIXEL" -srcfolder "FLOWHIT PIXEL.app" -ov -format UDZO FlowHit-Pixel-macOS-arm64.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: FlowHit-Pixel-macOS-arm64.dmg
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish release
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes "FLOWHIT PIXEL ${GITHUB_REF_NAME} — Windows installer + macOS DMG." artifacts/windows-installer/* artifacts/macos-dmg/*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

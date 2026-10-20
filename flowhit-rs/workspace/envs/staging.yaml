@@ -1,0 +1,8 @@
+name: staging
+vars:
+  base_url: https://httpbin.org
+  device_token: test-123
+auth:
+  mode: bearer
+  token_ref: STAGING_TOKEN
+secrets_id: default

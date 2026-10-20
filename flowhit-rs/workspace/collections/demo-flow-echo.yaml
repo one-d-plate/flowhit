@@ -1,0 +1,20 @@
+name: Demo Flow Echo
+method: POST
+url: '{{base_url}}/post'
+headers:
+  Content-Type: application/json
+body: |
+  {"city": "{{CITY}}", "qty": {{QTY}}, "note": "{{GREETING}}", "order_id": "{{ORDER_ID}}"}
+auth:
+  mode: none
+params:
+- k: city
+  v: '{{CITY}}'
+  on: true
+tests:
+- t: status
+  v: '200'
+  on: true
+prescript: ''
+body_mode: json
+form: []

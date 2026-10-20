@@ -1,0 +1,9 @@
+name: Ser
+method: POST
+url: '{{base_url}}/post'
+headers:
+  Content-Type: application/json
+body: |
+  {"email": "admin@sawit.id", "fcm": "{{device_token}}"}
+auth:
+  mode: ''

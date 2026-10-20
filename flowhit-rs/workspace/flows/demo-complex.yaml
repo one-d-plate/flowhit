@@ -1,0 +1,216 @@
+name: Demo Complex
+nodes:
+- id: s
+  kind: start
+  label: Start
+  x: 40
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: v
+  next_true: ''
+  next_false: ''
+- id: v
+  kind: setvar
+  label: Siapkan VAR
+  x: 280
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars:
+    CITY: jakarta
+    QTY: '2'
+    ORDER_ID: ORD-{{QTY}}
+    GREETING: halo-{{CITY}}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: g
+  next_true: ''
+  next_false: ''
+- id: g
+  kind: request
+  label: GET Export
+  x: 520
+  y: 60
+  ref_file: tes-export.yaml
+  extract:
+  - var: FOO
+    src: json:$.args.foo
+  - var: ST
+    src: status
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: d1
+  next_true: ''
+  next_false: ''
+- id: d1
+  kind: decision
+  label: Status 200?
+  x: 760
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: '200'
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: p
+  next_false: e1
+- id: p
+  kind: request
+  label: POST Echo
+  x: 1000
+  y: 60
+  ref_file: demo-flow-echo.yaml
+  extract:
+  - var: ECHO_QTY
+    src: json:$.json.qty
+  - var: ECHO_CITY
+    src: json:$.args.city
+  - var: CT
+    src: header:content-type
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: d2
+  next_true: ''
+  next_false: ''
+- id: d2
+  kind: decision
+  label: Body ada jakarta?
+  x: 1240
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: body
+    op: contains
+    right: jakarta
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: d3
+  next_false: e1
+- id: d3
+  kind: decision
+  label: Qty cocok?
+  x: 1480
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: var:ECHO_QTY
+    op: ==
+    right: '2'
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: l
+  next_false: e1
+- id: l
+  kind: loop
+  label: Ulangi 2x
+  x: 1720
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 2
+  loop_target: t
+  next: e2
+  next_true: ''
+  next_false: ''
+  await_ids:
+  - t
+- id: t
+  kind: request
+  label: GET Root
+  x: 1720
+  y: 200
+  ref_file: pm-test.yaml
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: ''
+  next_false: ''
+- id: e2
+  kind: end
+  label: Sukses
+  x: 1960
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: ''
+  next_false: ''
+- id: e1
+  kind: end
+  label: Gagal
+  x: 2200
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: ''
+  next_false: ''

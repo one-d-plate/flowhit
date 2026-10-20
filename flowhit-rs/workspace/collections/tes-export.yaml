@@ -1,0 +1,22 @@
+name: Tes Export
+method: GET
+url: https://httpbin.org/get
+headers:
+  Content-Type: application/json
+body: ''
+auth:
+  mode: none
+params:
+- k: foo
+  v: bar
+  on: true
+tests:
+- t: status
+  v: '200'
+  on: true
+- t: body
+  v: foo
+  on: true
+prescript: ''
+body_mode: json
+form: []

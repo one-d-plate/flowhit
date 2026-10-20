@@ -1,0 +1,7 @@
+target/
+flowhit-app/dist/
+flowhit-app/installer-out/
+flowhit-video/out/
+flowhit-video/node_modules/
+*.log
+.DS_Store

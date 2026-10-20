@@ -1,0 +1,76 @@
+name: Demo Simple
+nodes:
+- id: s
+  kind: start
+  label: Start
+  x: 40
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: ''
+    op: ''
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: r
+  next_true: ''
+  next_false: ''
+- id: r
+  kind: request
+  label: Get Export
+  x: 270
+  y: 60
+  ref_file: tes-export.yaml
+  extract:
+  - var: FOO
+    src: json:$.args.foo
+  cond:
+    left: ''
+    op: ''
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: d
+  next_true: ''
+  next_false: ''
+- id: d
+  kind: decision
+  label: Status 200?
+  x: 500
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: status
+    op: ==
+    right: '200'
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: e
+  next_false: e
+- id: e
+  kind: end
+  label: End
+  x: 730
+  y: 60
+  ref_file: ''
+  extract: []
+  cond:
+    left: ''
+    op: ''
+    right: ''
+  vars: {}
+  loop_mode: count
+  loop_count: 3
+  loop_target: ''
+  next: ''
+  next_true: ''
+  next_false: ''

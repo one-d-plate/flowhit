@@ -1,0 +1,13 @@
+name: PM Test
+method: GET
+url: '{{base_url}}/'
+headers:
+  Content-Type: application/json
+body: ''
+auth:
+  mode: none
+params: []
+tests: []
+prescript: ''
+body_mode: json
+form: []
