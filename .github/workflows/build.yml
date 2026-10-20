@@ -15,6 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            flowhit-rs -> target
+            flowhit-app -> target
+          shared-key: win
       - name: Build server
         working-directory: flowhit-rs
         run: cargo build --release --bin flowhit-server
@@ -46,6 +52,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            flowhit-rs -> target
+            flowhit-app -> target
+          shared-key: mac
       - name: Build server
         working-directory: flowhit-rs
         run: cargo build --release --bin flowhit-server
@@ -103,6 +115,8 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: List artifacts
+        run: ls -R artifacts
       - name: Publish release
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes "FLOWHIT PIXEL ${GITHUB_REF_NAME} — Windows installer + macOS DMG." artifacts/windows-installer/* artifacts/macos-dmg/*
